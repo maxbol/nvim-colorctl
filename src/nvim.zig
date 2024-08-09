@@ -12,9 +12,7 @@ const MessageType = enum(u2) {
     Notification = 2,
 };
 
-var msg_id: u64 = 0;
-
-fn allocMsgpackPayload(fn_name: []const u8, params: msgpack.Payload, allocator: std.mem.Allocator) !msgpack.Payload {
+fn allocMsgpackPayload(fn_name: []const u8, msg_id: u64, params: msgpack.Payload, allocator: std.mem.Allocator) !msgpack.Payload {
     var payload = try msgpack.Payload.arrPayload(4, allocator);
 
     try payload.setArrElement(0, msgpack.Payload.uintToPayload(@intFromEnum(MessageType.Request)));
@@ -22,18 +20,16 @@ fn allocMsgpackPayload(fn_name: []const u8, params: msgpack.Payload, allocator: 
     try payload.setArrElement(2, try msgpack.Payload.strToPayload(fn_name, allocator));
     try payload.setArrElement(3, params);
 
-    msg_id += 1;
-
     return payload;
 }
 
-fn sendCmdToEditor(pack: Pack, cmd: []const u8, allocator: std.mem.Allocator) !void {
+fn executeCmdInEditor(pack: Pack, msg_id: u64, cmd: []const u8, allocator: std.mem.Allocator) !void {
     const nvim_cmd_req = blk: {
         var params = try msgpack.Payload.arrPayload(1, allocator);
 
         try params.setArrElement(0, try msgpack.Payload.strToPayload(cmd, allocator));
 
-        const payload = try allocMsgpackPayload(NVIM_COMMAND, params, allocator);
+        const payload = try allocMsgpackPayload(NVIM_COMMAND, msg_id, params, allocator);
 
         break :blk payload;
     };
@@ -50,7 +46,7 @@ pub fn evalExprInEditor(editor: []const u8, expr: []const u8, allocator: std.mem
     const nvim_eval_req = blk: {
         var params = try msgpack.Payload.arrPayload(1, allocator);
         try params.setArrElement(0, try msgpack.Payload.strToPayload(expr, allocator));
-        const payload = try allocMsgpackPayload(NVIM_EVAL, params, allocator);
+        const payload = try allocMsgpackPayload(NVIM_EVAL, 0, params, allocator);
         break :blk payload;
     };
 
@@ -71,20 +67,29 @@ pub fn evalExprInEditor(editor: []const u8, expr: []const u8, allocator: std.mem
     return response_payload.getArrElement(3);
 }
 
-pub fn sendCmdToEditors(editors: []const []const u8, cmd: []const u8, allocator: std.mem.Allocator) !void {
+pub fn executeCmdsInEditors(editors: []const []const u8, cmds: []const []const u8, allocator: std.mem.Allocator) !void {
     var streams = std.ArrayList(std.net.Stream).init(allocator);
     var packs = std.ArrayList(Pack).init(allocator);
+    var cmd_map = std.AutoHashMap(u64, []const u8).init(allocator);
 
     for (editors) |editor| {
+        std.debug.print("Sending commands to editor {s}:\n", .{editor});
         const stream = try std.net.connectUnixSocket(editor);
         errdefer stream.close();
 
         const pack = Pack.init(stream, stream);
 
-        sendCmdToEditor(pack, cmd, allocator) catch {
-            std.log.err("Failed to run command in editor: editor={s}, cmd={s}", .{ editor, cmd });
-            return error.RunVimCmdFailed;
-        };
+        var msg_id: u64 = 0;
+        for (cmds) |cmd| {
+            try cmd_map.put(msg_id, cmd);
+            std.debug.print(" * {s}\n", .{cmd});
+            executeCmdInEditor(pack, msg_id, cmd, allocator) catch {
+                std.log.err("Failed to run command in editor: editor={s}, cmd={s}", .{ editor, cmd });
+                return error.RunVimCmdFailed;
+            };
+            msg_id += 1;
+        }
+        std.debug.print("\n", .{});
 
         try streams.append(stream);
         try packs.append(pack);
@@ -97,13 +102,19 @@ pub fn sendCmdToEditors(editors: []const []const u8, cmd: []const u8, allocator:
 
         const response = try pack.read(allocator);
 
+        const msg_id = try response.getArrElement(1);
         const err = try response.getArrElement(2);
+
+        const cmd = switch (msg_id) {
+            .uint => |id| cmd_map.get(id),
+            else => null,
+        };
 
         switch (err) {
             .nil => {},
             else => {
                 const msg = try err.getArrElement(1);
-                std.log.err("Failed to run command in editor: editor={s}, cmd={s}, err={s}", .{ editors[index], cmd, msg.str.value() });
+                std.log.err("Failed to run command in editor: editor={s}, cmd={?s}, err={s}", .{ editors[index], cmd, msg.str.value() });
             },
         }
     }
