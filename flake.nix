@@ -35,7 +35,7 @@
 
             meta = {
               description = "Utility to control Neovim colorscheme from the terminal";
-              license = lib.licenses.mit;
+              license = licenses.mit;
               maintainers = with lib.maintainers; [];
               mainProgram = "nvim-colorctl";
             };
