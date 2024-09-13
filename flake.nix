@@ -32,6 +32,13 @@
             # This disables LD_LIBRARY_PATH mangling, binary patching etc...
             # The package won't be usable inside nix.
             zigDisableWrap = true;
+
+            meta = {
+              description = "Utility to control Neovim colorscheme from the terminal";
+              license = lib.licenses.mit;
+              maintainers = with lib.maintainers; [];
+              mainProgram = "bin/nvim-colorctl";
+            };
           }
           // optionalAttrs (!pathExists ./build.zig.zon) {
             pname = "my-zig-project";
