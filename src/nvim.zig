@@ -70,6 +70,7 @@ pub fn evalExprInEditor(editor: []const u8, expr: []const u8, allocator: std.mem
 pub fn executeCmdsInEditors(editors: []const []const u8, cmds: []const []const u8, allocator: std.mem.Allocator) !void {
     var streams = std.ArrayList(std.net.Stream).init(allocator);
     var packs = std.ArrayList(Pack).init(allocator);
+    var msg_len = std.ArrayList(u64).init(allocator);
     var cmd_map = std.AutoHashMap(u64, []const u8).init(allocator);
 
     for (editors) |editor| {
@@ -93,29 +94,33 @@ pub fn executeCmdsInEditors(editors: []const []const u8, cmds: []const []const u
 
         try streams.append(stream);
         try packs.append(pack);
+        try msg_len.append(msg_id);
     }
 
     for (streams.items, 0..) |stream, index| {
         defer stream.close();
 
         const pack = packs.items[index];
+        const no_of_msgs = msg_len.items[index];
 
-        const response = try pack.read(allocator);
+        for (0..no_of_msgs) |_| {
+            const response = try pack.read(allocator);
 
-        const msg_id = try response.getArrElement(1);
-        const err = try response.getArrElement(2);
+            const msg_id = try response.getArrElement(1);
+            const err = try response.getArrElement(2);
 
-        const cmd = switch (msg_id) {
-            .uint => |id| cmd_map.get(id),
-            else => null,
-        };
+            const cmd = switch (msg_id) {
+                .uint => |id| cmd_map.get(id),
+                else => null,
+            };
 
-        switch (err) {
-            .nil => {},
-            else => {
-                const msg = try err.getArrElement(1);
-                std.log.err("Failed to run command in editor: editor={s}, cmd={?s}, err={s}", .{ editors[index], cmd, msg.str.value() });
-            },
+            switch (err) {
+                .nil => {},
+                else => {
+                    const msg = try err.getArrElement(1);
+                    std.log.err("Failed to run command in editor: editor={s}, cmd={?s}, err={s}", .{ editors[index], cmd, msg.str.value() });
+                },
+            }
         }
     }
 }
