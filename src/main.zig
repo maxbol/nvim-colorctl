@@ -58,20 +58,20 @@ pub fn main() !void {
 
     var cmds = std.ArrayList([]const u8).init(allocator);
 
-    if (res.args.set) |scheme| {
-        try cmds.append(try color.allocPrintColorSchemeCmd(scheme, allocator));
-    }
-
-    if (res.args.background) |bg_mode| {
-        try cmds.append(try color.allocPrintBgModeCmd(bg_mode, allocator));
-    }
-
     for (res.args.@"hi-fg") |groupcolor| {
         try cmds.append(try color.allocPrintHighlightCmd(groupcolor.group, groupcolor.color, null, allocator));
     }
 
     for (res.args.@"hi-bg") |groupcolor| {
         try cmds.append(try color.allocPrintHighlightCmd(groupcolor.group, null, groupcolor.color, allocator));
+    }
+
+    if (res.args.set) |scheme| {
+        try cmds.append(try color.allocPrintColorSchemeCmd(scheme, allocator));
+    }
+
+    if (res.args.background) |bg_mode| {
+        try cmds.append(try color.allocPrintBgModeCmd(bg_mode, allocator));
     }
 
     if (cmds.items.len > 0) {
