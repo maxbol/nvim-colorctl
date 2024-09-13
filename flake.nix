@@ -37,7 +37,7 @@
               description = "Utility to control Neovim colorscheme from the terminal";
               license = lib.licenses.mit;
               maintainers = with lib.maintainers; [];
-              mainProgram = "bin/nvim-colorctl";
+              mainProgram = "nvim-colorctl";
             };
           }
           // optionalAttrs (!pathExists ./build.zig.zon) {
