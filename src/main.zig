@@ -83,7 +83,7 @@ pub fn main() !void {
             return error.NoActiveEditors;
         }
 
-        _ = try nvim.executeCmdsInEditors(editors, cmds_slice, allocator);
+        _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
 
         if (res.args.@"emit-vim") |file| {
             const fpath = try color.allocPrintEmitFilePath(file, allocator);
