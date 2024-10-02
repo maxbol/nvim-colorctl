@@ -9,6 +9,7 @@ pub fn executeDuplexCmd(cmd: []const []const u8, allocator: std.mem.Allocator) !
     const process = try std.process.Child.run(.{
         .argv = cmd,
         .allocator = allocator,
+        .max_output_bytes = 1024 * 1024,
     });
 
     const term = process.term;
