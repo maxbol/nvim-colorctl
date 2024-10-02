@@ -28,8 +28,10 @@
             .hash = "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b",
         },
         .@"zig-msgpack" = .{
-            .url = "https://github.com/zigcc/zig-msgpack/archive/master.tar.gz",
-            .hash = "1220df416211776bc2cd5f993e87aa346d79985ee908553e55b8c34971bb88e879c8",
+            .url = "git+https://github.com/maxbol/zig-msgpack#bugfix/str8-cast-as-i8-instead-of-u8",
+            .hash = "122055a8b02f42f7c92b6e00b8ead1e0e7330dc08ca11a90f9334b723750a51444c5",
+            // .url = "https://github.com/zigcc/zig-msgpack/archive/master.tar.gz",
+            // .hash = "1220df416211776bc2cd5f993e87aa346d79985ee908553e55b8c34971bb88e879c8",
         },
     },
     .paths = .{
