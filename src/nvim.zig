@@ -121,7 +121,6 @@ pub fn inputCmdKeysToEditors(editors: []const []const u8, cmds: []const []const 
     const keys = fbs.getWritten();
 
     for (editors) |editor| {
-        std.debug.print("Sending keys to editor {s}: {s}\n", .{ editor, keys });
         const stream = try std.net.connectUnixSocket(editor);
         errdefer stream.close();
 
@@ -186,10 +185,7 @@ pub fn executeCmdsInEditors(editors: []const []const u8, cmds: []const []const u
 
     const cmd = fbs.getWritten();
 
-    std.debug.print("{s}\n", .{cmd});
-
     for (editors) |editor| {
-        std.debug.print("Sending commands to editor {s}:\n", .{editor});
         const stream = try std.net.connectUnixSocket(editor);
         errdefer stream.close();
 
