@@ -33,6 +33,8 @@
             # The package won't be usable inside nix.
             zigDisableWrap = true;
 
+            zigBuildFlags = ["-Doptimize=ReleaseFast"];
+
             meta = {
               description = "Utility to control Neovim colorscheme from the terminal";
               license = licenses.mit;
