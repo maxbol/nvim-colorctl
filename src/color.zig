@@ -49,8 +49,8 @@ pub fn parseGroupColorParam(in: []const u8) !GroupColor {
         }
 
         for (group) |c| {
-            if ((c < 'a' or c > 'z') and (c < 'A' or c > 'Z') and (c < '0' or c > '9') and c != '_') {
-                std.log.err("Not a valid group name. Expected [a-zA-Z0-9_]+", .{});
+            if ((c < 'a' or c > 'z') and (c < 'A' or c > 'Z') and (c < '0' or c > '9') and c != '_' and c != '@' and c != '.') {
+                std.log.err("Not a valid group name. Expected [a-zA-Z0-9_@.]+", .{});
                 return error.NotAValidGroupColor;
             }
         }
