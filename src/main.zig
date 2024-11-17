@@ -58,6 +58,8 @@ pub fn main() !void {
 
     var cmds = std.ArrayList([]const u8).init(allocator);
 
+    try cmds.append("highlight clear");
+
     if (res.args.set) |scheme| {
         try cmds.append(try color.allocPrintColorSchemeCmd(scheme, allocator));
     }
