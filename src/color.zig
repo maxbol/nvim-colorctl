@@ -129,8 +129,14 @@ pub fn getSystemColorSchemes(editor: []const u8, allocator: std.mem.Allocator) !
 
 pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     var exists = true;
-    std.fs.accessAbsolute(file, .{}) catch {
-        exists = false;
+    std.fs.accessAbsolute(file, .{}) catch |err| {
+        std.log.info("File access failed: {!}", .{err});
+        switch (err) {
+            error.FileNotFound => {
+                exists = false;
+            },
+            else => {},
+        }
     };
 
     if (exists == true) {
