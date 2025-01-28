@@ -135,7 +135,9 @@ pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
             error.FileNotFound => {
                 exists = false;
             },
-            else => {},
+            else => {
+                return err;
+            },
         }
     };
 
