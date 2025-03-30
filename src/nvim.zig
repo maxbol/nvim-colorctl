@@ -121,7 +121,15 @@ pub fn inputCmdKeysToEditors(editors: []const []const u8, cmds: []const []const 
     const keys = fbs.getWritten();
 
     for (editors) |editor| {
-        const stream = try std.net.connectUnixSocket(editor);
+        const stream = std.net.connectUnixSocket(editor) catch |err| {
+            switch (err) {
+                error.FileNotFound => {
+                    std.log.info("Error: FileNotFound from connectUnixSocket() - editor socket: {s}", .{editor});
+                },
+                else => {},
+            }
+            return err;
+        };
         errdefer stream.close();
 
         const pack = Pack.init(stream, stream);
