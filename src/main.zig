@@ -21,7 +21,12 @@ pub fn main() !void {
         \\
     );
 
-    const parsers = comptime .{ .colorscheme = color.parseColorSchemeParam, .file = clap.parsers.string, .bg_mode = clap.parsers.enumeration(color.BgMode), .groupcolor = color.parseGroupColorParam };
+    const parsers = comptime .{
+        .colorscheme = color.parseColorSchemeParam,
+        .file = clap.parsers.string,
+        .bg_mode = clap.parsers.enumeration(color.BgMode),
+        .groupcolor = color.parseGroupColorParam,
+    };
 
     var diag = clap.Diagnostic{};
     var res = clap.parse(clap.Help, &params, parsers, .{

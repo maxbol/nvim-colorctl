@@ -36,6 +36,10 @@ pub fn parseGroupColorParam(in: []const u8) !GroupColor {
         const group = in[0..idx];
         const color = in[idx + 1 ..];
 
+        if (std.mem.eql(u8, color, "none")) {
+            return GroupColor{ .color = "none", .group = group };
+        }
+
         if (color.len != 7 or color[0] != '#') {
             std.log.err("Not a valid color format. Expected #RRGGBB", .{});
             return error.NotAValidGroupColor;
