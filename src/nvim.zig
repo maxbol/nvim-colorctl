@@ -78,7 +78,7 @@ pub fn evalExprInEditor(editor: []const u8, expr: []const u8, allocator: std.mem
     const stream = std.net.connectUnixSocket(editor) catch |err| {
         switch (err) {
             error.FileNotFound => {
-                std.log.err("Error: FileNotFound on connectUnixSocket() in evalExprInEditor()", .{});
+                std.log.err("Error: FileNotFound from connectUnixSocket() in evalExporInEditor - editor socket: {s}", .{editor});
             },
             else => {},
         }
