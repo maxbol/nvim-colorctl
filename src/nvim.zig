@@ -75,7 +75,15 @@ fn executeCmdInEditor(pack: Pack, msg_id: u64, cmd: []const u8, allocator: std.m
 }
 
 pub fn evalExprInEditor(editor: []const u8, expr: []const u8, allocator: std.mem.Allocator) !msgpack.Payload {
-    const stream = try std.net.connectUnixSocket(editor);
+    const stream = std.net.connectUnixSocket(editor) catch |err| {
+        switch (err) {
+            error.FileNotFound => {
+                std.log.err("Error: FileNotFound on connectUnixSocket() in evalExprInEditor()", .{});
+            },
+            else => {},
+        }
+        return err;
+    };
     defer stream.close();
 
     const pack = Pack.init(stream, stream);
