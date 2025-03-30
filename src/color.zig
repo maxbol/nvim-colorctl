@@ -146,12 +146,41 @@ pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     };
 
     if (exists == true) {
-        _ = try std.fs.deleteFileAbsolute(file);
+        std.log.info("Target script file already exists, deleting...", .{});
+        _ = std.fs.deleteFileAbsolute(file) catch |err| {
+            switch (err) {
+                error.FileNotFound => {
+                    std.log.info("File not found on deleteFileAbsolute()", .{});
+                    return err;
+                },
+                else => {
+                    return err;
+                },
+            }
+        };
     }
 
-    _ = try std.fs.createFileAbsolute(file, .{});
+    _ = std.fs.createFileAbsolute(file, .{}) catch |err| {
+        switch (err) {
+            error.FileNotFound => {
+                std.log.info("File not found on createFileAbsolute()", .{});
+            },
+            else => {},
+        }
 
-    const fh = try std.fs.openFileAbsolute(file, .{ .mode = .write_only });
+        return err;
+    };
+
+    const fh = std.fs.openFileAbsolute(file, .{ .mode = .write_only }) catch |err| {
+        switch (err) {
+            error.FileNotFound => {
+                std.log.info("File not found on openFileAbsolute()", .{});
+            },
+            else => {},
+        }
+        return err;
+    };
+
     defer fh.close();
 
     try fh.writer().writeAll(script_data);
