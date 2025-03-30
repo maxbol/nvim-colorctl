@@ -124,7 +124,7 @@ pub fn inputCmdKeysToEditors(editors: []const []const u8, cmds: []const []const 
         const stream = std.net.connectUnixSocket(editor) catch |err| {
             switch (err) {
                 error.FileNotFound => {
-                    std.log.info("Error: FileNotFound from connectUnixSocket() - editor socket: {s}", .{editor});
+                    std.log.err("Error: FileNotFound from connectUnixSocket() - editor socket: {s}", .{editor});
                 },
                 else => {},
             }

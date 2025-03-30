@@ -134,7 +134,7 @@ pub fn getSystemColorSchemes(editor: []const u8, allocator: std.mem.Allocator) !
 pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     var exists = true;
     std.fs.accessAbsolute(file, .{}) catch |err| {
-        std.log.info("File access failed: {!}", .{err});
+        std.log.err("File access failed: {!}", .{err});
         switch (err) {
             error.FileNotFound => {
                 exists = false;
@@ -146,11 +146,11 @@ pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     };
 
     if (exists == true) {
-        std.log.info("Target script file already exists, deleting...", .{});
+        std.log.err("Target script file already exists, deleting...", .{});
         _ = std.fs.deleteFileAbsolute(file) catch |err| {
             switch (err) {
                 error.FileNotFound => {
-                    std.log.info("File not found on deleteFileAbsolute()", .{});
+                    std.log.err("File not found on deleteFileAbsolute()", .{});
                     return err;
                 },
                 else => {
@@ -163,7 +163,7 @@ pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     _ = std.fs.createFileAbsolute(file, .{}) catch |err| {
         switch (err) {
             error.FileNotFound => {
-                std.log.info("File not found on createFileAbsolute()", .{});
+                std.log.err("File not found on createFileAbsolute()", .{});
             },
             else => {},
         }
@@ -174,7 +174,7 @@ pub fn emitScriptFile(script_data: []const u8, file: []const u8) !void {
     const fh = std.fs.openFileAbsolute(file, .{ .mode = .write_only }) catch |err| {
         switch (err) {
             error.FileNotFound => {
-                std.log.info("File not found on openFileAbsolute()", .{});
+                std.log.err("File not found on openFileAbsolute()", .{});
             },
             else => {},
         }
