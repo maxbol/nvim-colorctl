@@ -1,0 +1,12 @@
+{
+  "122062d301a203d003547b414237229b09a7980095061697349f8bef41be9c30266b": {
+    "name": "clap",
+    "url": "https://github.com/Hejsil/zig-clap/archive/refs/tags/0.9.1.tar.gz",
+    "hash": "sha256-7qxm/4xb+58MGG+iUzssUtR97OG2dRjAqyS0BAet4HY="
+  },
+  "1220c76430e6c5a4e64e8351d8a0ed0ead6881fcb656620355e63962c8dca74e0b32": {
+    "name": "zig-msgpack",
+    "url": "https://github.com/zigcc/zig-msgpack/archive/refs/tags/0.0.6.tar.gz",
+    "hash": "sha256-Fvre/mlgg1XP2UFvv5YJJWrHW0Q7GbBev0PGZB6GWb8="
+  }
+}

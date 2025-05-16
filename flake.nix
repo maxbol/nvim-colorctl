@@ -35,6 +35,8 @@
 
             zigBuildFlags = ["-Doptimize=ReleaseFast"];
 
+            zigBuildZonLock = ./build.zig.zon2json-lock;
+
             meta = {
               description = "Utility to control Neovim colorscheme from the terminal";
               license = licenses.mit;
@@ -52,6 +54,7 @@
         # Prefer nix friendly settings.
         zigPreferMusl = false;
         zigDisableWrap = false;
+        zigBuildZonLock = ./build.zig.zon2json-lock;
       };
 
       # For bundling with nix bundle for running outside of nix
