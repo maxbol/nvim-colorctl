@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const executeDuplexCmd = @import("cmd.zig").executeDuplexCmd;
 
 fn allocParseProcessSocket(process_data: []const u8, allocator: std.mem.Allocator) ![]const []const u8 {
@@ -27,6 +28,13 @@ fn allocParseProcessSocket(process_data: []const u8, allocator: std.mem.Allocato
     return cols.toOwnedSlice();
 }
 
+fn isBSDLike() bool {
+    return switch (comptime builtin.os.tag) {
+        .macos, .freebsd, .netbsd, .openbsd => true,
+        inline else => false,
+    };
+}
+
 pub fn allocAllActiveEditors(allocator: std.mem.Allocator) ![]const []const u8 {
     const list_unix_sockets_raw_result = try executeDuplexCmd(&.{ "lsof", "-U" }, allocator);
 
@@ -37,6 +45,8 @@ pub fn allocAllActiveEditors(allocator: std.mem.Allocator) ![]const []const u8 {
 
     var editors = std.ArrayList([]const u8).init(allocator);
     errdefer editors.deinit();
+
+    const socket_col = if (comptime isBSDLike()) 7 else 8;
 
     var curr_start: usize = 0;
     for (list_unix_sockets_raw_result.stdout, 0..) |char, index| {
@@ -53,7 +63,7 @@ pub fn allocAllActiveEditors(allocator: std.mem.Allocator) ![]const []const u8 {
             curr_start = index + 1;
 
             const p_name = entry_cols[0];
-            const p_socket = entry_cols[7];
+            const p_socket = entry_cols[socket_col];
 
             if (!std.mem.eql(u8, p_name, "nvim")) {
                 continue;
