@@ -83,25 +83,33 @@ pub fn main() !void {
 
     if (cmds.items.len > 0) {
         const cmds_slice = try cmds.toOwnedSlice();
+        var did_something = false;
 
         const editors = try socket.allocAllActiveEditors(allocator);
         if (editors.len == 0) {
             std.log.err("No active editors found. Make sure neovim is running.", .{});
-            return error.NoActiveEditors;
+        } else {
+            _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
+            did_something = true;
         }
-
-        _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
 
         if (res.args.@"emit-vim") |file| {
             const fpath = try color.allocPrintEmitFilePath(file, allocator);
             std.log.info("Emitting vimscript cmd to file: {s}\n", .{fpath});
             try color.emitCmds(cmds_slice, fpath, color.EmitType.VimScript, allocator);
+            did_something = true;
         }
 
         if (res.args.@"emit-lua") |file| {
             const fpath = try color.allocPrintEmitFilePath(file, allocator);
             std.log.info("Emitting lua cmd to file: {s}\n", .{fpath});
             try color.emitCmds(cmds_slice, fpath, color.EmitType.Lua, allocator);
+            did_something = true;
+        }
+
+        if (!did_something) {
+            std.log.warn("No active editors found, and no emit command supplied, so did nothing. Make sure neovim is running, or supply either --emit-vim or --emit-lua to make sure the program actually does something.", .{});
+            return error.NoActionTaken;
         }
         return;
     }
