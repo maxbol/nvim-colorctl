@@ -86,9 +86,7 @@ pub fn main() !void {
         var did_something = false;
 
         const editors = try socket.allocAllActiveEditors(allocator);
-        if (editors.len == 0) {
-            std.log.err("No active editors found. Make sure neovim is running.", .{});
-        } else {
+        if (editors.len > 0) {
             _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
             did_something = true;
         }
