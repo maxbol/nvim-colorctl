@@ -33,7 +33,7 @@
             # The package won't be usable inside nix.
             zigDisableWrap = true;
 
-            zigBuildFlags = ["-Doptimize=ReleaseFast"];
+            # zigBuildFlags = ["-Doptimize=ReleaseFast"];
 
             zigBuildZonLock = ./build.zig.zon2json-lock;
 
