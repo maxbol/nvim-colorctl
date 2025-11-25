@@ -12,10 +12,11 @@ pub fn main() !void {
     const params = comptime clap.parseParamsComptime(
         \\-h, --help                    Show this help message.
         \\-l, --list                    List all available color schemes.
-        \\-s, --set <colorscheme>               Set the color scheme in all active editors.
+        \\-s, --set <colorscheme>       Set the color scheme in all active editors.
         \\-b, --background <bg_mode>    Set the background mode (light/dark)
         \\--hi-fg <groupcolor>...       Set the foreground color of a highlight group (<group>,<hexcolor> format)
         \\--hi-bg <groupcolor>...       Set the foreground color of a highlight group (<group>,<hexcolor> format)
+        \\--extra-cmd <cmd>...          Add an extra cmd to be run on theme activation
         \\--emit-vim <file>             Emit the cmd to set the colorscheme to a vimscript file
         \\--emit-lua <file>             Emit the cmd to set the colorscheme to a lua file
         \\
@@ -26,6 +27,7 @@ pub fn main() !void {
         .file = clap.parsers.string,
         .bg_mode = clap.parsers.enumeration(color.BgMode),
         .groupcolor = color.parseGroupColorParam,
+        .cmd = clap.parsers.string,
     };
 
     var diag = clap.Diagnostic{};
@@ -81,6 +83,10 @@ pub fn main() !void {
         try cmds.append(try color.allocPrintHighlightCmd(groupcolor.group, null, groupcolor.color, allocator));
     }
 
+    for (res.args.@"extra-cmd") |cmd| {
+        try cmds.append(cmd);
+    }
+
     if (cmds.items.len > 0) {
         const cmds_slice = try cmds.toOwnedSlice();
         var did_something = false;
@@ -90,6 +96,8 @@ pub fn main() !void {
             _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
             did_something = true;
         }
+        // _ = try nvim.inputCmdKeysToEditors(editors, cmds_slice, allocator);
+        try nvim.executeCmdsInEditors(editors, cmds_slice, allocator);
 
         if (res.args.@"emit-vim") |file| {
             const fpath = try color.allocPrintEmitFilePath(file, allocator);

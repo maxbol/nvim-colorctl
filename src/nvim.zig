@@ -190,7 +190,7 @@ pub fn executeCmdsInEditors(editors: []const []const u8, cmds: []const []const u
         _ = try writer.write("\t\tvim.cmd(\"");
         _ = try writer.write(cmd);
         _ = try writer.write("\")\n");
-        std.debug.print(" * {s}\n", .{cmd});
+        // std.debug.print(" * {s}\n", .{cmd});
     }
     std.debug.print("\n", .{});
 

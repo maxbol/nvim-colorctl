@@ -3,9 +3,14 @@
 
   inputs = {
     zig2nix.url = "github:Cloudef/zig2nix";
+    zls.url = "github:zigtools/zls/?rev=a26718049a8657d4da04c331aeced1697bc7652b";
   };
 
-  outputs = {zig2nix, ...}: let
+  outputs = {
+    zig2nix,
+    zls,
+    ...
+  }: let
     flake-utils = zig2nix.inputs.flake-utils;
   in (flake-utils.lib.eachDefaultSystem (system: let
     # Zig flake helper
@@ -13,6 +18,7 @@
     # <https://github.com/Cloudef/zig2nix/blob/master/flake.nix>
     env = zig2nix.outputs.zig-env.${system} {};
     system-triple = env.lib.zigTripleFromString system;
+    zlsPackages = zls.packages.${system};
   in
     with builtins;
     with env.lib;
@@ -94,6 +100,10 @@
       apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
 
       # nix develop
-      devShells.default = env.mkShell {};
+      devShells.default = env.mkShell {
+        packages = [
+          zlsPackages.default
+        ];
+      };
     }));
 }
