@@ -3,14 +3,9 @@
 
   inputs = {
     zig2nix.url = "github:Cloudef/zig2nix";
-    zls.url = "github:zigtools/zls/?rev=a26718049a8657d4da04c331aeced1697bc7652b";
   };
 
-  outputs = {
-    zig2nix,
-    zls,
-    ...
-  }: let
+  outputs = {zig2nix, ...}: let
     flake-utils = zig2nix.inputs.flake-utils;
   in (flake-utils.lib.eachDefaultSystem (system: let
     # Zig flake helper
@@ -19,93 +14,28 @@
     env = zig2nix.outputs.zig-env.${system} {
       zig = zig2nix.packages.${system}.zig-0_13_0;
     };
-    system-triple = env.lib.zigTripleFromString system;
-    zlsPackages = zls.packages.${system};
-  in
-    with builtins;
-    with env.lib;
-    with env.pkgs.lib; rec {
-      # nix build .#target.{zig-target}
-      # e.g. nix build .#target.x86_64-linux-gnu
-      packages.target = genAttrs allTargetTriples (target:
-        env.packageForTarget target ({
-            src = cleanSource ./.;
+  in {
+    packages.default = env.package {
+      pname = "nvim-colorctl";
+      version = "0.0.0";
+      src = ./.;
 
-            nativeBuildInputs = with env.pkgs; [];
-            buildInputs = with env.pkgsForTarget target; [];
-
-            # Smaller binaries and avoids shipping glibc.
-            zigPreferMusl = true;
-
-            # This disables LD_LIBRARY_PATH mangling, binary patching etc...
-            # The package won't be usable inside nix.
-            zigDisableWrap = true;
-
-            # zigBuildFlags = ["-Doptimize=ReleaseFast"];
-
-            zigBuildZonLock = ./build.zig.zon2json-lock;
-
-            meta = {
-              description = "Utility to control Neovim colorscheme from the terminal";
-              license = licenses.mit;
-              maintainers = with lib.maintainers; [];
-              mainProgram = "nvim-colorctl";
-            };
-          }
-          // optionalAttrs (!pathExists ./build.zig.zon) {
-            pname = "my-zig-project";
-            version = "0.0.0";
-          }));
-
-      # nix build .
-      packages.default = packages.target.${system-triple}.override {
-        # Prefer nix friendly settings.
-        zigPreferMusl = false;
-        zigDisableWrap = false;
-        zigBuildZonLock = ./build.zig.zon2json-lock;
+      meta = {
+        description = "Utility to control Neovim colorscheme from the terminal";
+        mainProgram = "nvim-colorctl";
       };
+    };
 
-      # For bundling with nix bundle for running outside of nix
-      # example: https://github.com/ralismark/nix-appimage
-      apps.bundle.target = genAttrs allTargetTriples (target: let
-        pkg = packages.target.${target};
-      in {
-        type = "app";
-        program = "${pkg}/bin/default";
-      });
+    # nix run .#zon2json
+    apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
 
-      # default bundle
-      apps.bundle.default = apps.bundle.target.${system-triple};
+    # nix run .#zon2json-lock
+    apps.zon2json-lock = env.app [env.zon2json-lock] "zon2json-lock \"$@\"";
 
-      # nix run .
-      apps.default = env.app [] "zig build run -- \"$@\"";
+    # nix run .#zon2nix
+    apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
 
-      # nix run .#build
-      apps.build = env.app [] "zig build \"$@\"";
-
-      # nix run .#test
-      apps.test = env.app [] "zig build test -- \"$@\"";
-
-      # nix run .#docs
-      apps.docs = env.app [] "zig build docs -- \"$@\"";
-
-      # nix run .#deps
-      apps.deps = env.showExternalDeps;
-
-      # nix run .#zon2json
-      apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
-
-      # nix run .#zon2json-lock
-      apps.zon2json-lock = env.app [env.zon2json-lock] "zon2json-lock \"$@\"";
-
-      # nix run .#zon2nix
-      apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
-
-      # nix develop
-      devShells.default = env.mkShell {
-        packages = [
-          zlsPackages.default
-        ];
-      };
-    }));
+    # nix develop
+    devShells.default = env.mkShell {};
+  }));
 }
