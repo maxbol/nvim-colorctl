@@ -46,7 +46,7 @@ pub fn parseGroupColorParam(in: []const u8) !GroupColor {
         }
 
         for (color[1..]) |c| {
-            if ((c < '0' or c > '9') and (c < 'a' or c > 'f')) {
+            if ((c < '0' or c > '9') and (c < 'a' or c > 'f') and (c < 'A' or c > 'F')) {
                 std.log.err("Not a valid color format. Expected #RRGGBB", .{});
                 return error.NotAValidGroupColor;
             }
